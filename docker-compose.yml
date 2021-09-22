@@ -1,0 +1,57 @@
+version: '3'
+services:
+  web:
+    container_name: node_app
+    build:
+      context: ./docker
+    volumes:
+      - .:/usr/src/app
+    restart: always
+    environment:
+      NODE_ENV: development
+      DEBUG: nodejs-docker-express:*
+    networks:
+      - default
+  mysql:
+    image: mysql:5.7
+    container_name: app_mysql
+    restart: unless-stopped
+    ports:
+      - 3308:3306
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: qldt
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: 123456
+    networks: 
+      - default
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: app_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - 8282:80
+    depends_on: 
+      - mysql
+    environment:
+      - PMA_HOST=mysql
+      - MYSQL_ROOT_PASSWORD=root
+      - UPLOAD_LIMIT=64M
+    networks: 
+      - default
+  nginx:
+    image: nginx:latest
+    container_name: node_nginx
+    volumes: 
+      - .:/usr/src/app
+      - ./nginx/nginx_log:/var/log/nginx
+      - ./nginx/node.conf:/etc/nginx/conf.d/node.conf
+    ports:
+      - "81:80"
+    networks:
+      - default
+networks:
+  default:
+    driver: bridge
