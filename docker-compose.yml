@@ -1,9 +1,11 @@
 version: '3'
 services:
   web:
-    container_name: node_app
+    container_name: node_app1
     build:
       context: ./docker
+    ports:
+      - '3000:3000'
     volumes:
       - .:/usr/src/app
     restart: always
@@ -14,7 +16,7 @@ services:
       - default
   mysql:
     image: mysql:5.7
-    container_name: app_mysql
+    container_name: app_mysql1
     restart: unless-stopped
     ports:
       - 3308:3306
@@ -27,23 +29,56 @@ services:
       MYSQL_PASSWORD: 123456
     networks: 
       - default
-  phpmyadmin:
-    image: phpmyadmin
-    container_name: app_phpmyadmin
+  test-db:
+    image: mysql:5.7
+    container_name: app_mysql2
     restart: unless-stopped
     ports:
-      - 8282:80
+      - 3309:3306
+    volumes:
+      - ./docker/mysql2:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: qldt
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: 123456
+    networks: 
+      - default
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: app_phpmyadmin1
+    restart: unless-stopped
+    ports:
+      - 8982:80
     depends_on: 
       - mysql
     environment:
       - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root
+      - UPLOAD_LIMIT=64M
+    networks: 
+      - default
+  phpmyadmin1:
+    image: phpmyadmin
+    container_name: app_phpmyadmin33
+    restart: unless-stopped
+    ports:
+      - 8983:80
+    depends_on: 
+      - mysql
+    environment:
+      - PMA_HOST=test-db
+      - PMA_USER=root
+      - PMA_PASSWORD=root
       - MYSQL_ROOT_PASSWORD=root
       - UPLOAD_LIMIT=64M
     networks: 
       - default
   nginx:
     image: nginx:latest
-    container_name: node_nginx
+    container_name: node_nginx1
     volumes: 
       - .:/usr/src/app
       - ./nginx/nginx_log:/var/log/nginx

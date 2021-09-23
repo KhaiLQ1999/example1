@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /docker/mysql
+/docker/mysql2
 /nginx/nginx_log
 
 # Logs

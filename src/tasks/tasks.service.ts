@@ -19,15 +19,14 @@ export class TasksService {
     private readonly userRepository: Repository<User>
   ){}
   async create(createTaskDto: CreateTaskDto) {
-    // find user logged in
-    const user = await this.userRepository.findOne(this.user);
+    const user = await this.userRepository.findOne(createTaskDto.user?.id || this.user);
 
     // create task by user loggedin
     const task = await this.taskRepository.create({
       ...createTaskDto,
       user: user
     });
-    return this.taskRepository.save(task);
+    return await this.taskRepository.save(task);
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
@@ -48,8 +47,12 @@ export class TasksService {
   }
 
   async changeStatus(id: number) {
-    // find task 
-    const task = await this.taskRepository.findOne(id);
+    const task = await this.taskRepository.findOne({
+      relations: ['user'],
+      where: {
+        id
+      }
+    });
 
     // check task info
     if(!task || task.user?.id != this.user){
@@ -67,11 +70,25 @@ export class TasksService {
     return this.taskRepository.save(newTask);
   }
 
-  async remove(id: number) {
-    // find task
+  async findOne(id: number) {
     const task = await this.taskRepository.findOne(id);
 
-    // check task and user info
+    if(!task) {
+      throw new HttpException({
+        message: "Record not found",
+      }, HttpStatus.NOT_FOUND);
+    }
+    return task;
+  }
+
+  async remove(id: number) {
+    const task = await this.taskRepository.findOne({
+      relations: ['user'],
+      where: {
+        id
+      }
+    });
+    
     if(!task || task.user?.id != this.user){
       throw new HttpException({
         message: "Record not found",
