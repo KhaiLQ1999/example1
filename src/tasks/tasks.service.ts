@@ -55,6 +55,8 @@ export class TasksService {
     });
 
     // check task info
+    console.log(task);
+    
     if(!task || task.user?.id != this.user){
       throw new HttpException({
         message: "Record not found",
